@@ -1,1 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sentiment Core v1.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #020617;
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --accent: #22d3ee;
+      --accent-soft: rgba(34, 211, 238, 0.25);
+      --accent-2: #a855f7;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+    }
+
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(34, 211, 238, 0.15), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.18), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.1), transparent 60%),
+        var(--bg);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 960px;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.96),
+        rgba(15, 23, 42, 0.9)
+      );
+      border-radius: 28px;
+      box-shadow:
+        0 0 0 1px rgba(148, 163, 184, 0.1),
+        0 24px 60px rgba(15, 23, 42, 0.9);
+      position: relative;
+      overflow: hidden;
+      padding: 24px 26px 26px;
+    }
+
+    .shell::before,
+    .shell::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(28px);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .shell::before {
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+      top: -90px;
+      right: -40px;
+    }
+
+    .shell::after {
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.4), transparent 70%);
+      bottom: -120px;
+      left: -80px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .shell {
+        padding: 20px 18px 18px;
+      }
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .orb {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #ecfeff, #22d3ee 45%, #0f172a 100%);
+      box-shadow:
+        0 0 18px rgba(34, 211, 238, 0.65),
+        0 0 32px rgba(34, 211, 238, 0.45);
+      position: relative;
+    }
+
+    .orb::after {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: inherit;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      box-shadow: 0 0 0 1px rgba(8, 47, 73, 0.8) inset;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f9fafb;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-soft);
+    }
+
+    .status-pill {
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 0 0, rgba(34, 211, 238, 0.4), transparent 60%),
+        rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(45, 212, 191, 0.35);
+      color: #a7f3d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow:
+        0 0 12px rgba(34, 197, 94, 0.35),
+        0 0 1px rgba(16, 185, 129, 0.9);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+    }
+
+    .status-label {
+      opacity: 0.8;
+      letter-spacing: 0.14em;
+    }
+
+    .card {
+      border-radius: 22px;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.93));
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 14px 35px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.85) inset;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.18), transparent 55%);
+      opacity: 0.8;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      padding: 18px 18px 16px;
+      z-index: 1;
+    }
+
+    .card-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+
+    .card-heading {
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0.035em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-heading span.accent {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      color: rgba(148, 163, 184, 0.95);
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: rgba(148, 163, 184, 0.9);
+      margin-bottom: 6px;
+    }
+
+    .input-shell {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      box-shadow:
+        0 12px 30px rgba(15, 23, 42, 0.95),
+        0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+    }
+
+    .input-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.4),
+        rgba(129, 140, 248, 0.12),
+        transparent 65%
+      );
+      opacity: 0;
+      transition: opacity 220ms ease-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .input-shell.focused::before {
+      opacity: 1;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 14px 14px 32px;
+      resize: vertical;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    textarea::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    .input-meta {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 11px;
+      color: rgba(148, 163, 184, 0.75);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-meta-pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hint-key {
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      font-size: 10px;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 0 0, #22d3ee, #0ea5e9 55%, #0f172a 100%);
+      color: #0b1220;
+      box-shadow:
+        0 0 24px rgba(34, 211, 238, 0.7),
+        0 10px 24px rgba(15, 23, 42, 0.95);
+      transition:
+        transform 120ms ease-out,
+        box-shadow 120ms ease-out,
+        filter 120ms ease-out;
+    }
+
+    .btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(248, 250, 252, 0.7),
+        transparent
+      );
+      transform: translateX(-120%);
+      transition: transform 260ms ease-out;
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+
+    .btn:hover::before {
+      transform: translateX(100%);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow:
+        0 0 30px rgba(34, 211, 238, 0.9),
+        0 18px 34px rgba(15, 23, 42, 0.98);
+      filter: brightness(1.05);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow:
+        0 0 18px rgba(34, 211, 238, 0.7),
+        0 8px 18px rgba(15, 23, 42, 0.98);
+      filter: brightness(0.96);
+    }
+
+    .btn-icon {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.8);
+      background: radial-gradient(circle at 30% 30%, #f9fafb, #e0f2fe 50%, #0f172a 105%);
+      box-shadow:
+        0 0 8px rgba(15, 23, 42, 0.8),
+        0 0 30px rgba(15, 23, 42, 0.8) inset;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-icon::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 999px;
+      border: 1px solid rgba(8, 47, 73, 0.9);
+      opacity: 0.9;
+    }
+
+    .btn-label-sub {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.36em;
+      opacity: 0.9;
+    }
+
+    .side-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .chip {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: rgba(148, 163, 184, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .chip.good {
+      border-color: rgba(52, 211, 153, 0.7);
+      color: #6ee7b7;
+      background: linear-gradient(
+        135deg,
+        rgba(22, 163, 74, 0.32),
+        rgba(6, 95, 70, 0.9)
+      );
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.65);
+    }
+
+    .chip.bad {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+      background: linear-gradient(
+        135deg,
+        rgba(185, 28, 28, 0.38),
+        rgba(127, 29, 29, 0.9)
+      );
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.55);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .metric {
+      padding: 8px 9px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 1));
+      font-size: 10px;
+      color: var(--text-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .metric-label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 9px;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .metric-value {
+      font-size: 14px;
+      color: #e5e7eb;
+    }
+
+    .metric-trend {
+      font-size: 10px;
+      color: #22c55e;
+    }
+
+    .metric-trend.bad {
+      color: #f97373;
+    }
+
+    .divider {
+      margin: 10px 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(148, 163, 184, 0.45),
+        transparent
+      );
+    }
+
+    .output {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .output-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .output-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at 0 0, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 1));
+      font-size: 12px;
+      min-height: 32px;
+    }
+
+    .output-pill.positive {
+      border-color: rgba(52, 211, 153, 0.8);
+      box-shadow:
+        0 0 22px rgba(16, 185, 129, 0.6),
+        0 0 0 1px rgba(15, 23, 42, 0.92) inset;
+    }
+
+    .output-pill.negative {
+      border-color: rgba(248, 113, 113, 0.8);
+      box-shadow:
+        0 0 22px rgba(248, 113, 113, 0.6),
+        0 0 0 1px rgba(15, 23, 42, 0.92) inset;
+    }
+
+    .output-pill.neutral {
+      border-color: rgba(59, 130, 246, 0.8);
+      box-shadow:
+        0 0 22px rgba(59, 130, 246, 0.6),
+        0 0 0 1px rgba(15, 23, 42, 0.92) inset;
+    }
+
+    .output-status {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 10px;
+      color: rgba(209, 213, 219, 0.9);
+    }
+
+    .output-intensity {
+      font-size: 11px;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .output-glow {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #f9fafb, #e0f2fe 45%, #0f172a 100%);
+      box-shadow:
+        0 0 16px rgba(226, 232, 240, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.95) inset;
+    }
+
+    .history {
+      font-size: 11px;
+      color: rgba(148, 163, 184, 0.85);
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .history-entry {
+      padding: 7px 0;
+      border-bottom: 1px dashed rgba(55, 65, 81, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .history-entry:last-child {
+      border-bottom: none;
+    }
+
+    .history-label {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 9px;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .history-text {
+      font-size: 11px;
+      color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-sentiment {
+      font-size: 10px;
+      color: #a7f3d0;
+    }
+
+    .history-sentiment.bad {
+      color: #fecaca;
+    }
+
+    .error-banner {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      border: 1px solid rgba(248, 113, 113, 0.65);
+      color: #fecaca;
+      background: linear-gradient(
+        135deg,
+        rgba(127, 29, 29, 0.85),
+        rgba(15, 23, 42, 0.98)
+      );
+      display: none;
+    }
+
+    .error-banner.visible {
+      display: block;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(55, 65, 81, 0.9);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <div class="orb"></div>
+        <div class="brand-text">
+          <div class="brand-title">Sentiment Core</div>
+          <div class="brand-sub">Realtime Polarity Scanner</div>
+        </div>
+      </div>
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <div class="status-label">Model Online</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-title">Input Console</div>
+          <div class="card-heading">
+            Analyze Text
+            <span class="accent">SNT‑001 · V1.0</span>
+          </div>
+          <p class="card-desc">
+            Paste any sentence or short paragraph below and fire a real‑time inference
+            request to your deployed sentiment model. Processing happens locally on your
+            server API.
+          </p>
+
+          <div class="field-label">Text Payload</div>
+          <div class="input-shell" id="input-shell">
+            <textarea id="text-input"
+              placeholder="Example: &quot;I love how fast this model responds, it feels incredibly smooth.&quot;"></textarea>
+            <div class="input-meta">
+              <span id="char-count">0</span>
+              <span class="input-meta-pill">JSON · POST /predict</span>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="hint">
+              <span class="hint-key">Ctrl</span>
+              <span class="hint-key">⏎</span>
+              <span>to dispatch analysis</span>
+            </div>
+            <button class="btn" id="analyze-btn">
+              <div class="btn-icon"></div>
+              <span>Run Inference</span>
+              <span class="btn-label-sub">Sentiment</span>
+            </button>
+          </div>
+
+          <div id="error-banner" class="error-banner">
+            Unable to reach prediction service. Check that the Flask server is running
+            and reachable at <code>/predict</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner side-card">
+          <div>
+            <div class="card-title">Signal Telemetry</div>
+            <div class="chip-row">
+              <div class="chip good">Positive</div>
+              <div class="chip bad">Negative</div>
+              <div class="chip">Neutral</div>
+              <div class="chip">Realtime</div>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label">Latency</div>
+                <div class="metric-value" id="latency-value">– ms</div>
+                <div class="metric-trend" id="latency-trend">Awaiting first call</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Requests</div>
+                <div class="metric-value" id="req-count">0</div>
+                <div class="metric-trend">Session total</div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="output">
+              <div class="output-label">Current Sentiment Vector</div>
+              <div class="output-pill neutral" id="output-pill">
+                <div>
+                  <div class="output-status" id="sentiment-label">No signal</div>
+                  <div class="output-intensity" id="sentiment-intensity">
+                    Submit a sample to view polarity.
+                  </div>
+                </div>
+                <div class="output-glow"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="output-label">Recent Samples</div>
+            <div class="history" id="history"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const textInput = document.getElementById('text-input');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const charCount = document.getElementById('char-count');
+    const inputShell = document.getElementById('input-shell');
+    const outputPill = document.getElementById('output-pill');
+    const sentimentLabel = document.getElementById('sentiment-label');
+    const sentimentIntensity = document.getElementById('sentiment-intensity');
+    const latencyValue = document.getElementById('latency-value');
+    const latencyTrend = document.getElementById('latency-trend');
+    const reqCount = document.getElementById('req-count');
+    const history = document.getElementById('history');
+    const errorBanner = document.getElementById('error-banner');
+
+    let totalRequests = 0;
+    let lastLatency = null;
+
+    textInput.addEventListener('focus', () => {
+      inputShell.classList.add('focused');
+    });
+
+    textInput.addEventListener('blur', () => {
+      inputShell.classList.remove('focused');
+    });
+
+    textInput.addEventListener('input', () => {
+      charCount.textContent = textInput.value.length;
+    });
+
+    textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        triggerAnalysis();
+      }
+    });
+
+    analyzeBtn.addEventListener('click', () => {
+      triggerAnalysis();
+    });
+
+    function sentimentToLabel(s) {
+      const norm = String(s).toLowerCase();
+      if (norm.includes('pos')) return 'Positive';
+      if (norm.includes('neg')) return 'Negative';
+      if (norm.includes('neu')) return 'Neutral';
+      return s;
+    }
+
+    function applySentimentStyle(s) {
+      outputPill.classList.remove('positive', 'negative', 'neutral');
+      const norm = String(s).toLowerCase();
+      if (norm.includes('pos')) {
+        outputPill.classList.add('positive');
+      } else if (norm.includes('neg')) {
+        outputPill.classList.add('negative');
+      } else {
+        outputPill.classList.add('neutral');
+      }
+    }
+
+    async function triggerAnalysis() {
+      const text = textInput.value.trim();
+      if (!text) return;
+
+      errorBanner.classList.remove('visible');
+      analyzeBtn.disabled = true;
+      analyzeBtn.style.opacity = 0.7;
+
+      const start = performance.now();
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        const end = performance.now();
+        const latency = Math.round(end - start);
+        lastLatency = latency;
+        totalRequests += 1;
+
+        latencyValue.textContent = latency + ' ms';
+        reqCount.textContent = totalRequests;
+        latencyTrend.textContent =
+          latency < 120 ? 'Ultra‑low latency' :
+          latency < 350 ? 'Nominal inference time' :
+          'High latency – inspect server';
+
+        if (!res.ok) {
+          throw new Error('HTTP ' + res.status);
+        }
+
+        const data = await res.json();
+        const s = data.sentiment ?? 'Unknown';
+
+        applySentimentStyle(s);
+        const label = sentimentToLabel(s);
+        sentimentLabel.textContent = label.toUpperCase();
+        sentimentIntensity.textContent = `Model classified this sample as "${label}"`;
+
+        prependHistory(text, label);
+      } catch (e) {
+        errorBanner.classList.add('visible');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.style.opacity = 1;
+      }
+    }
+
+    function prependHistory(text, label) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'history-entry';
+
+      const meta = document.createElement('div');
+      meta.className = 'history-label';
+      meta.textContent = new Date().toLocaleTimeString();
+
+      const t = document.createElement('div');
+      t.className = 'history-text';
+      t.textContent = text;
+
+      const s = document.createElement('div');
+      s.className = 'history-sentiment';
+      if (label.toLowerCase().includes('neg')) {
+        s.classList.add('bad');
+      }
+      s.textContent = label;
+
+      wrapper.appendChild(meta);
+      wrapper.appendChild(t);
+      wrapper.appendChild(s);
+
+      history.prepend(wrapper);
+    }
+  </script>
+</body>
+</html>
 
