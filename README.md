@@ -4,7 +4,7 @@ A machine learning-powered web service that classifies text sentiment as **Posit
 
 ## 🚀 Live Demo
 The API is currently hosted on Render:
-🔗 [https://my-sentiment-tool.onrender.com](https://my-sentiment-tool.onrender.com)
+🔗 [[https://my-sentiment-tool.onrender.com](https://sentiment-core-api.onrender.com)]()
 
 ## 🧠 Project Overview
 This project uses Natural Language Processing (NLP) to analyze the sentiment of user-provided text. The workflow involved training a model in a Jupyter environment and deploying it using a Flask wrapper.
